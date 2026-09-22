@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import RegisterForm from "@/components/auth/register-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function RegisterPage() {
   const colleges = await db.college.findMany({
     where: { isActive: true },
