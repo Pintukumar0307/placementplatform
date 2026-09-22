@@ -35,8 +35,8 @@ export default function CreateSessionDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-orange-600 hover:bg-orange-700">Schedule Session</Button>
+      <DialogTrigger render={<Button className="bg-orange-600 hover:bg-orange-700" />}>
+        Schedule Session
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form action={onSubmit}>

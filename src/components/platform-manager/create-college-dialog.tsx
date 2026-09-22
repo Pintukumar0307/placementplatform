@@ -35,8 +35,8 @@ export default function CreateCollegeDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-orange-600 hover:bg-orange-700">Add New College</Button>
+      <DialogTrigger render={<Button className="bg-orange-600 hover:bg-orange-700" />}>
+        Add New College
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form action={onSubmit}>

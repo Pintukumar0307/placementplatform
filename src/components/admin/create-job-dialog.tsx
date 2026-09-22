@@ -35,8 +35,8 @@ export default function CreateJobDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-orange-600 hover:bg-orange-700">Add New Job</Button>
+      <DialogTrigger render={<Button className="bg-orange-600 hover:bg-orange-700" />}>
+        Add New Job
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <form action={onSubmit}>
