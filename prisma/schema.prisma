@@ -1,0 +1,195 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  PLATFORM_MANAGER
+  COLLEGE_ADMIN
+  STUDENT
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  REJECTED
+  SELECTED
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+}
+
+enum ResumeStatus {
+  VALID
+  INVALID
+}
+
+model College {
+  id             String   @id @default(uuid())
+  name           String
+  logoUrl        String?
+  bannerUrl      String?
+  address        String?
+  city           String?
+  state          String?
+  country        String?
+  website        String?
+  contactEmail   String?
+  contactPhone   String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relationships
+  users          User[]
+  jobs           Job[]
+  applications   Application[]
+  resumes        Resume[]
+  events         Event[]
+  expertSessions ExpertSession[]
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  role          Role
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Multi-tenancy (Nullable for PLATFORM_MANAGER)
+  collegeId     String?
+  college       College? @relation(fields: [collegeId], references: [id])
+
+  // Profile extension for students
+  studentProfile StudentProfile?
+
+  // Student specific relations
+  applications   Application[]
+  resumes        Resume[]
+  sessionRegs    ExpertSessionRegistration[]
+}
+
+model StudentProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentId     String?  // Roll number
+  batch         String?
+  course        String?
+  careerJourney String?
+  profileImage  String?
+}
+
+model Job {
+  id            String   @id @default(uuid())
+  title         String
+  companyName   String
+  companyLogo   String?
+  jobType       JobType
+  ctc           String?
+  location      String?
+  description   String?
+  eligibility   String?
+  deadline      DateTime?
+  isPublished   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  collegeId     String
+  college       College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  applications  Application[]
+}
+
+model Application {
+  id            String   @id @default(uuid())
+  status        ApplicationStatus @default(APPLIED)
+  appliedAt     DateTime @default(now())
+
+  studentId     String
+  student       User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  jobId         String
+  job           Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  collegeId     String
+  college       College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  resumeId      String?
+  resume        Resume?  @relation(fields: [resumeId], references: [id])
+}
+
+model Resume {
+  id            String   @id @default(uuid())
+  name          String
+  status        ResumeStatus @default(VALID)
+  isDefault     Boolean  @default(false)
+  content       String?  @db.Text  // Storing resume builder data as JSON string for simplicity, or we can use Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  studentId     String
+  student       User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  collegeId     String
+  college       College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  applications  Application[]
+}
+
+model ExpertSession {
+  id            String   @id @default(uuid())
+  title         String
+  expertName    String
+  date          DateTime
+  description   String?
+  createdAt     DateTime @default(now())
+
+  collegeId     String
+  college       College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  registrations ExpertSessionRegistration[]
+}
+
+model ExpertSessionRegistration {
+  id            String   @id @default(uuid())
+  registeredAt  DateTime @default(now())
+
+  sessionId     String
+  session       ExpertSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  studentId     String
+  student       User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, studentId])
+}
+
+model Event {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  date          DateTime
+  createdAt     DateTime @default(now())
+
+  collegeId     String
+  college       College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+}
+
+// Keeping Notification simple for MVP
+model Notification {
+  id            String   @id @default(uuid())
+  title         String
+  message       String
+  read          Boolean  @default(false)
+  userId        String   // Can be for any user
+  createdAt     DateTime @default(now())
+}
